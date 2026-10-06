@@ -1,17 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "LeetGit",
+  "name": "GitLee",
   "version": "1.0.0",
   "description": "Sync your accepted LeetCode solutions to GitHub automatically.",
-  "permissions": [
-    "storage",
-    "identity",
-    "tabs",
-    "activeTab"
-  ],
+  "permissions": ["storage", "identity", "tabs", "activeTab"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "host_permissions": [
     "https://leetcode.com/*",
-    "http://localhost:3001/*"
+    "https://gitlee-backend.onrender.com/*"
   ],
   "background": {
     "service_worker": "background.js",

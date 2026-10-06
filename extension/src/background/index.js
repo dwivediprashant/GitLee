@@ -1,29 +1,28 @@
 // Background service worker — message routing, OAuth coordination.
 
-import { storage } from '../storage/index.js';
+import { storage } from "../storage/index.js";
 
-const BACKEND_URL = 'http://localhost:3001';
-
+const BACKEND_URL = "https://gitlee-backend.onrender.com";
 // Handle messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender)
     .then(sendResponse)
-    .catch(err => sendResponse({ success: false, error: err.message }));
+    .catch((err) => sendResponse({ success: false, error: err.message }));
   return true; // keep channel open for async response
 });
 
 async function handleMessage(message, sender) {
   switch (message.type) {
-    case 'START_GITHUB_AUTH':
+    case "START_GITHUB_AUTH":
       return startGitHubAuth();
 
-    case 'GET_AUTH_STATE':
+    case "GET_AUTH_STATE":
       return getAuthState();
 
-    case 'LOGOUT':
+    case "LOGOUT":
       return logout();
 
-    case 'SYNC_SUBMISSION':
+    case "SYNC_SUBMISSION":
       return syncSubmission(message.payload);
 
     default:
@@ -42,13 +41,13 @@ async function startGitHubAuth() {
       // Listen for the callback redirect
       function onUpdated(updatedTabId, changeInfo, updatedTab) {
         if (updatedTabId !== tabId) return;
-        if (changeInfo.status !== 'complete') return;
+        if (changeInfo.status !== "complete") return;
 
-        const url = updatedTab.url || '';
+        const url = updatedTab.url || "";
         // Backend redirects to extension after OAuth with token
-        if (url.includes('token=')) {
+        if (url.includes("token=")) {
           const params = new URL(url).searchParams;
-          const token = params.get('token');
+          const token = params.get("token");
 
           chrome.tabs.onUpdated.removeListener(onUpdated);
           chrome.tabs.remove(tabId).catch(() => {});
@@ -60,7 +59,10 @@ async function startGitHubAuth() {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 const user = await response.json();
-                if (!response.ok) throw new Error(user.message || 'Could not verify the GitHub session');
+                if (!response.ok)
+                  throw new Error(
+                    user.message || "Could not verify the GitHub session",
+                  );
                 await storage.setUser(user);
                 resolve({ success: true });
               } catch (error) {
@@ -69,24 +71,30 @@ async function startGitHubAuth() {
               }
             });
           } else {
-            resolve({ success: false, error: 'No token in callback URL' });
+            resolve({ success: false, error: "No token in callback URL" });
           }
-        } else if (url.includes('error=')) {
+        } else if (url.includes("error=")) {
           const params = new URL(url).searchParams;
           chrome.tabs.onUpdated.removeListener(onUpdated);
           chrome.tabs.remove(tabId).catch(() => {});
-          resolve({ success: false, error: params.get('error') || 'OAuth failed' });
+          resolve({
+            success: false,
+            error: params.get("error") || "OAuth failed",
+          });
         }
       }
 
       chrome.tabs.onUpdated.addListener(onUpdated);
 
       // Timeout after 5 minutes
-      setTimeout(() => {
-        chrome.tabs.onUpdated.removeListener(onUpdated);
-        chrome.tabs.remove(tabId).catch(() => {});
-        resolve({ success: false, error: 'Authentication timed out' });
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          chrome.tabs.onUpdated.removeListener(onUpdated);
+          chrome.tabs.remove(tabId).catch(() => {});
+          resolve({ success: false, error: "Authentication timed out" });
+        },
+        5 * 60 * 1000,
+      );
     });
   });
 }
@@ -102,7 +110,7 @@ async function logout() {
   const token = await storage.getAuthToken();
   if (token) {
     await fetch(`${BACKEND_URL}/api/auth/logout`, {
-      method: 'POST',
+      method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     }).catch(() => {});
   }
@@ -113,14 +121,18 @@ async function logout() {
 async function syncSubmission(payload) {
   const token = await storage.getAuthToken();
   if (!token) {
-    return { success: false, error: 'GitHub is not connected. Please connect your GitHub account before synchronizing.' };
+    return {
+      success: false,
+      error:
+        "GitHub is not connected. Please connect your GitHub account before synchronizing.",
+    };
   }
 
   const res = await fetch(`${BACKEND_URL}/api/sync`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
@@ -128,7 +140,10 @@ async function syncSubmission(payload) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    return { success: false, error: data.message || `Sync failed: HTTP ${res.status}` };
+    return {
+      success: false,
+      error: data.message || `Sync failed: HTTP ${res.status}`,
+    };
   }
 
   // Cache last sync result
