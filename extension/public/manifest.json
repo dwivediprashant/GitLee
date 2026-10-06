@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "LeetGit",
+  "version": "1.0.0",
+  "description": "Sync your accepted LeetCode solutions to GitHub automatically.",
+  "permissions": [
+    "storage",
+    "identity",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "http://localhost:3001/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": []
+}

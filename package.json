@@ -1,0 +1,12 @@
+{
+  "name": "leetgit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd extension && npm install && cd ../server && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:extension": "cd extension && npm run dev",
+    "build:extension": "cd extension && npm run build",
+    "test:server": "cd server && npm test"
+  }
+}
