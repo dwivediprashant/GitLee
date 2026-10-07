@@ -15,6 +15,9 @@ body {
 
 .popup {
   padding: 16px;
+  border: 1px solid #6e7681;
+  border-radius: 10px;
+  background: #0d1117;
 }
 
 .app-icon-wrap {
@@ -141,21 +144,33 @@ body {
 }
 
 .btn-primary {
-  background: #238636;
-  border-color: #2ea043;
-  color: #fff;
+  background: #1a3a2a;
+  border-color: #3fb950;
+  color: #7ee787;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1f4d33;
 }
 
 .btn-secondary {
-  background: transparent;
-  border-color: #30363d;
+  background: #21262d;
+  border-color: #6e7681;
   color: #e6edf3;
 }
 
+.btn-secondary:hover:not(:disabled) {
+  background: #30363d;
+}
+
 .btn-danger {
-  background: transparent;
+  background: #3a1d1d;
   border-color: #da3633;
-  color: #f85149;
+  color: #ffa198;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #4d2323;
 }
 
 .divider {
@@ -310,4 +325,44 @@ body {
   color: #8b949e;
   margin-top: 4px;
   word-break: break-all;
+}
+
+.connecting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18px 10px;
+  gap: 10px;
+}
+
+.connecting-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid #30363d;
+  border-top-color: #58a6ff;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.connecting-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e6edf3;
+}
+
+.connecting-sub {
+  font-size: 11px;
+  color: #8b949e;
+  line-height: 1.5;
 }

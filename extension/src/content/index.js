@@ -5,7 +5,7 @@ import { leetcodeAdapter } from "../integrations/leetcode/index.js";
 const BUTTON_ID = "gitlee-sync-btn";
 const BUTTON_CONTAINER_ID = "gitlee-btn-container";
 
-let currentState = "idle"; // idle | syncing | synced | failed
+let currentState = "idle"; // idle | committing | committed | failed
 let disconnectWatcher = null;
 let lastInjectedUrl = null;
 let readinessAttempt = 0;
@@ -64,8 +64,8 @@ function updateButtonState(state, message) {
 
   const states = {
     idle: { text: "Commit to GitHub", bg: "#238636", disabled: false },
-    syncing: { text: "⏳ Committing...", bg: "#6e7681", disabled: true },
-    synced: { text: "Commit done", bg: "#1a7f37", disabled: false },
+    committing: { text: "⏳ Committing...", bg: "#6e7681", disabled: true },
+    committed: { text: "Commit done", bg: "#1a7f37", disabled: false },
     failed: { text: "Retry commit", bg: "#da3633", disabled: false },
   };
 
@@ -128,10 +128,10 @@ function injectSyncButton() {
 // ─── Sync Handler ─────────────────────────────────────────────────────────────
 
 async function handleSyncClick() {
-  if (currentState === "syncing") return;
+  if (currentState === "committing") return;
 
-  updateButtonState("syncing");
-  log("Sync button clicked — extracting submission");
+  updateButtonState("committing");
+  log("Commit button clicked — extracting submission");
 
   const result = await leetcodeAdapter.getSubmission();
 
@@ -149,11 +149,11 @@ async function handleSyncClick() {
     `Submission extracted: ${result.data.problemTitle} (${result.data.language})`,
   );
 
-  const defaultCommitMessage = `Sync ${result.data.problemTitle} from LeetCode`;
+  const defaultCommitMessage = `Commit ${result.data.problemTitle} from LeetCode`;
   const commitMessage = await promptCommitMessage(defaultCommitMessage);
 
   if (commitMessage === null) {
-    log("Sync cancelled by user — no commit message provided");
+    log("Commit cancelled by user — no commit message provided");
     updateButtonState("idle");
     return;
   }
@@ -164,18 +164,18 @@ async function handleSyncClick() {
   });
 
   if (!response.success) {
-    log(`Sync failed: ${response.error}`);
+    log(`Commit failed: ${response.error}`);
     updateButtonState("failed");
-    showToast(`Sync failed: ${response.error}`, "error");
+    showToast(`Commit failed: ${response.error}`, "error");
     return;
   }
 
-  log("Sync completed successfully");
-  updateButtonState("synced");
+  log("Commit completed successfully");
+  updateButtonState("committed");
 
   const commitUrl = response.data?.commit?.url;
   showToast(
-    `✓ Synced to GitHub\n${result.data.problemTitle}\n${result.data.language}`,
+    `✓ Committed to GitHub\n${result.data.problemTitle}\n${result.data.language}`,
     "success",
     commitUrl,
   );
@@ -213,7 +213,7 @@ function promptCommitMessage(defaultMessage) {
     `;
 
     const title = document.createElement("div");
-    title.textContent = "Commit message";
+    title.textContent = "Write Commit Message";
     title.style.cssText =
       "color:#f0f6fc; font-size:14px; font-weight:600; margin-bottom:10px;";
 
@@ -251,7 +251,7 @@ function promptCommitMessage(defaultMessage) {
     `;
 
     const confirmBtn = document.createElement("button");
-    confirmBtn.textContent = "Sync";
+    confirmBtn.textContent = "Commit";
     confirmBtn.style.cssText = `
       background: #238636;
       color: #fff;
@@ -370,7 +370,7 @@ function onPageChange() {
           return;
         }
         if (retry === 0 || retry === 11) {
-          log(`Sync button withheld: ${readiness.errors.join(", ")}`);
+          log(`Commit button withheld: ${readiness.errors.join(", ")}`);
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
       }

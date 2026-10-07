@@ -33,7 +33,38 @@ async function handleMessage(message, sender) {
   }
 }
 
+/**
+ * Pings the backend /api/health until it answers or the timeout elapses.
+ * Wakes a sleeping Render free-tier instance before opening the auth tab,
+ * so the user never stares at a hanging blank page.
+ */
+async function wakeBackend(timeoutMs = 90000) {
+  const started = Date.now();
+  let delay = 1000;
+  for (;;) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/health`, { cache: "no-store" });
+      if (res.ok) return true;
+    } catch {
+      // Server still asleep or unreachable — keep waiting.
+    }
+    if (Date.now() - started > timeoutMs) return false;
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay + 1000, 5000); // 1s, 2s, 3s… capped at 5s
+  }
+}
+
 async function startGitHubAuth() {
+  // Warm the server first; otherwise a sleeping Render instance leaves the
+  // auth tab hanging on a blank page for ~50s.
+  const awake = await wakeBackend();
+  if (!awake) {
+    return {
+      success: false,
+      error: "Server is taking too long to wake up. Please try again in a minute.",
+    };
+  }
+
   const authUrl = `${BACKEND_URL}/api/auth/github`;
 
   return new Promise((resolve) => {

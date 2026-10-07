@@ -46,7 +46,7 @@ function RepoSelector({ onSelect, onCancel }) {
 
   return (
     <div>
-      <div className="section-label">Select Repository</div>
+      <div className="section-label">Choose Commit Repository</div>
       <input
         className="search-input"
         placeholder="Search repositories…"
@@ -174,7 +174,7 @@ function FolderSelector({ repo, initialFolder, onSaved }) {
 
   return (
     <div>
-      <div className="section-label">Target Folder</div>
+      <div className="section-label">Choose Commit Folder</div>
       {isEmpty && folders.length === 0 ? (
         <div className="helper-note">
           This repository is empty — files will go to the root level. Folders
@@ -250,7 +250,7 @@ function FolderSelector({ repo, initialFolder, onSaved }) {
         onClick={handleSave}
         disabled={saving}
       >
-        {saving ? "Saving…" : "Save Folder"}
+        {saving ? "Saving…" : "Save Commit Folder"}
       </button>
     </div>
   );
@@ -266,6 +266,7 @@ function Popup() {
   const [selectingRepo, setSelectingRepo] = useState(false);
   const [selectingFolder, setSelectingFolder] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   const loadState = useCallback(async () => {
     setLoading(true);
@@ -310,6 +311,7 @@ function Popup() {
   }, [loadState]);
 
   async function handleConnect() {
+    setConnecting(true);
     setError(null);
     const result = await chrome.runtime.sendMessage({
       type: "START_GITHUB_AUTH",
@@ -319,6 +321,7 @@ function Popup() {
     } else {
       setError(result.error || "GitHub authentication failed");
     }
+    setConnecting(false);
   }
 
   async function handleDisconnect() {
@@ -442,7 +445,7 @@ function Popup() {
 
       {/* GitHub Connection */}
       <div className="section">
-        <div className="section-label">GitHub</div>
+        <div className="section-label">Connected GitHub Account</div>
         <div className="status-row">
           <div
             className={`dot ${authenticated ? "connected" : "disconnected"}`}
@@ -454,14 +457,30 @@ function Popup() {
       </div>
 
       {!authenticated ? (
-        <button className="btn btn-primary" onClick={handleConnect}>
-          Connect GitHub
-        </button>
+        connecting ? (
+          <div className="connecting">
+            <img
+              className="connecting-icon"
+              src="icons/icon128.png"
+              alt="GitLee"
+            />
+            <div className="spinner" />
+            <div className="connecting-title">Waking up the server…</div>
+            <div className="connecting-sub">
+              Free hosting sleeps when idle — this takes ~30s the first time.
+              The GitHub tab opens automatically once ready.
+            </div>
+          </div>
+        ) : (
+          <button className="btn btn-primary" onClick={handleConnect}>
+            Connect GitHub Account
+          </button>
+        )
       ) : (
         <>
           {/* Repository */}
           <div className="section">
-            <div className="section-label">Repository</div>
+            <div className="section-label">Commit Destination Repository</div>
             {selectedRepo ? (
               <>
                 <div className="repo-name">
@@ -474,7 +493,7 @@ function Popup() {
               </>
             ) : (
               <div className="status-text" style={{ color: "#8b949e" }}>
-                No repository selected
+                No repository chosen — pick where commits will go
               </div>
             )}
           </div>
@@ -484,7 +503,7 @@ function Popup() {
             onClick={() => setSelectingRepo(true)}
             disabled={saving}
           >
-            {selectedRepo ? "Change Repository" : "Select Repository"}
+            {selectedRepo ? "Change Commit Repository" : "Choose Commit Repository"}
           </button>
 
           {selectedRepo && (
@@ -493,8 +512,8 @@ function Popup() {
               onClick={() => setSelectingFolder(true)}
             >
               {selectedRepo.targetFolder
-                ? "Change Folder"
-                : "Select Target Folder"}
+                ? "Change Commit Folder"
+                : "Choose Commit Folder"}
             </button>
           )}
 
@@ -503,11 +522,11 @@ function Popup() {
             <>
               <div className="divider" />
               <div className="section">
-                <div className="section-label">Recent Sync</div>
+                <div className="section-label">Last Committed Solution</div>
                 <div className="last-sync">
                   <div className="problem-title">{lastSync.problemTitle}</div>
                   <div className="meta">
-                    {lastSync.language} · Synced successfully
+                    {lastSync.language} · Committed to GitHub successfully
                   </div>
                   {lastSync.commitUrl && (
                     <a
@@ -532,12 +551,12 @@ function Popup() {
 
           {selectedRepo && (
             <button className="btn btn-secondary" onClick={openRepo}>
-              Open Repository
+              Open Repository on GitHub
             </button>
           )}
 
           <button className="btn btn-danger" onClick={handleDisconnect}>
-            Disconnect GitHub
+            Disconnect GitHub Account
           </button>
         </>
       )}
