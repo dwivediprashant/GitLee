@@ -110,10 +110,14 @@ export const authController = {
         expiresIn: config.jwt.expiresIn,
       });
 
-      // Redirect back to extension with token
-      // The background service worker intercepts this URL
-      const extensionCallbackUrl = config.cors.extensionId
-        ? `chrome-extension://${config.cors.extensionId}/popup.html?token=${jwtToken}`
+      // Redirect back to extension with token.
+      // The background service worker intercepts this URL.
+      // Prefer the store CRX ID (first entry) so reviewers/published users land
+      // in their build; falls back to the legacy single ID, then localhost.
+      const callbackExtensionId =
+        config.cors.extensionIds[0] || config.cors.extensionId;
+      const extensionCallbackUrl = callbackExtensionId
+        ? `chrome-extension://${callbackExtensionId}/popup.html?token=${jwtToken}`
         : `http://localhost:3001/auth-success?token=${jwtToken}`;
 
       res.redirect(extensionCallbackUrl);
