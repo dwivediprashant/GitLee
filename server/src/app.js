@@ -11,8 +11,12 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 const allowedOrigins = new Set([config.cors.clientUrl]);
-if (config.cors.extensionId)
-  allowedOrigins.add(`chrome-extension://${config.cors.extensionId}`);
+// Legacy single ID + new comma-separated list. Covers store CRX ID (reviewer +
+// all users) plus your local unpacked ID for dev, e.g.
+// EXTENSION_IDS=pdnicnmeenpofnpekdaioaoafnfhbiln,abcdef...
+for (const id of [config.cors.extensionId, ...config.cors.extensionIds]) {
+  if (id) allowedOrigins.add(`chrome-extension://${id}`);
+}
 
 app.use(
   cors({

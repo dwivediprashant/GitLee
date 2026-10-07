@@ -21,6 +21,12 @@ export const config = {
 
   cors: {
     extensionId: process.env.EXTENSION_ID,
+    // Comma-separated extra IDs (e.g. store CRX ID + local unpacked ID):
+    // EXTENSION_IDS=aaa...,bbb...
+    extensionIds: (process.env.EXTENSION_IDS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
     clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   },
 };
