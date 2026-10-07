@@ -46,14 +46,38 @@ export function sanitizeProblemFolderName(title) {
 }
 
 /**
- * Builds the file paths for a sync operation.
+ * Sanitizes a user-chosen base folder path (e.g. "algorithms/arrays").
+ * Strips leading/trailing slashes, blocks path traversal (".."), removes
+ * characters GitHub rejects, collapses duplicate slashes.
+ * Empty input resolves to "" (repository root level).
  */
-export function buildFilePaths(problemTitle, language) {
+export function sanitizeTargetFolder(raw) {
+  if (raw == null) return '';
+  const cleaned = String(raw)
+    .replace(/\\/g, '/')
+    .split('/')
+    .map((seg) => seg.trim().replace(/[<>:\"|?*\x00-\x1f]/g, ''))
+    .filter((seg) => seg.length > 0 && seg !== '.' && seg !== '..')
+    .join('/');
+  return cleaned.slice(0, 200); // cap length
+}
+
+/**
+ * Builds the file paths for a sync operation.
+ * When targetFolder is provided (e.g. "algorithms/arrays"), the problem
+ * folder is nested under it; otherwise it lands at the repository root.
+ * GitHub's Git Data API builds any missing intermediate directories
+ * automatically from the full file path — no folder-creation call needed.
+ */
+export function buildFilePaths(problemTitle, language, targetFolder = '') {
   const folder = sanitizeProblemFolderName(problemTitle);
+  const base = sanitizeTargetFolder(targetFolder);
+  const prefix = base ? `${base}/` : '';
   const ext = languageToExtension(language);
   return {
     folder,
-    solutionPath: `${folder}/solution.${ext}`,
-    descriptionPath: `${folder}/Description.md`,
+    baseFolder: base,
+    solutionPath: `${prefix}${folder}/solution.${ext}`,
+    descriptionPath: `${prefix}${folder}/Description.md`,
   };
 }

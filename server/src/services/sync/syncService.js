@@ -1,7 +1,7 @@
 import { generateDescription } from '../llm/description.js';
 import { commitFiles } from '../github/contents.js';
 import { verifyRepositoryAccess } from '../github/repositories.js';
-import { buildFilePaths } from '../../utils/fileUtils.js';
+import { buildFilePaths, sanitizeTargetFolder } from '../../utils/fileUtils.js';
 import { SyncRecord } from '../../models/SyncRecord.js';
 import { RepositoryPreference } from '../../models/RepositoryPreference.js';
 
@@ -15,6 +15,9 @@ function validatePayload(payload) {
   if (!payload.problemDescription?.trim()) errors.push('problemDescription is required');
   if (!payload.language?.trim()) errors.push('language is required');
   if (payload.accepted !== true) errors.push('Submission must be accepted');
+  if (payload.targetFolder != null && typeof payload.targetFolder !== 'string') {
+    errors.push('targetFolder must be a string when provided');
+  }
   return errors;
 }
 
@@ -55,7 +58,7 @@ export async function performSync(userId, payload) {
   const repoPref = await RepositoryPreference.findOne({ userId });
   if (!repoPref) {
     throw Object.assign(
-      new Error('No repository selected. Please select a GitHub repository in the LeetGit extension.'),
+      new Error('No repository selected. Please select a GitHub repository in the GitLee extension.'),
       { status: 400 }
     );
   }
@@ -63,14 +66,19 @@ export async function performSync(userId, payload) {
   const { owner, name: repo, defaultBranch: branch } = repoPref;
 
   // 4. Verify repository access
-  console.log(`[LeetGit] Verifying repository access: ${owner}/${repo}`);
+  console.log(`[GitLee] Verifying repository access: ${owner}/${repo}`);
   await verifyRepositoryAccess(userId, owner, repo);
 
   // 5. Build file paths
-  const { solutionPath, descriptionPath } = buildFilePaths(payload.problemTitle, payload.language);
+  // Per-sync targetFolder (sent by the extension) takes precedence over the
+  // saved repository preference; both fall back to the repository root.
+  const targetFolder = sanitizeTargetFolder(
+    payload.targetFolder ?? repoPref.targetFolder ?? ''
+  );
+  const { solutionPath, descriptionPath } = buildFilePaths(payload.problemTitle, payload.language, targetFolder);
 
   // 6. Generate Description.md
-  console.log('[LeetGit] Generating description');
+  console.log('[GitLee] Generating description');
   const descResult = await generateDescription({
     problemTitle: payload.problemTitle,
     problemDescription: payload.problemDescription,
@@ -83,7 +91,8 @@ export async function performSync(userId, payload) {
   ];
 
   // 8. Commit to GitHub atomically
-  console.log('[LeetGit] Creating GitHub commit');
+  console.log('[GitLee] Creating GitHub commit');
+  const commitMessage = payload.commitMessage?.trim() || `Sync ${payload.problemTitle} from LeetCode`;
   let githubResult;
   try {
     githubResult = await commitFiles(userId, {
@@ -91,7 +100,7 @@ export async function performSync(userId, payload) {
       repo,
       branch,
       files,
-      message: `Sync ${payload.problemTitle} from LeetCode`,
+      message: commitMessage,
     });
   } catch (err) {
     // Record the failure
@@ -127,7 +136,7 @@ export async function performSync(userId, payload) {
     status: 'success',
   });
 
-  console.log(`[LeetGit] Sync completed: ${githubResult.commit.url}`);
+  console.log(`[GitLee] Sync completed: ${githubResult.commit.url}`);
 
   return {
     success: true,

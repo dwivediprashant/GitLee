@@ -118,7 +118,7 @@ export const authController = {
 
       res.redirect(extensionCallbackUrl);
     } catch (err) {
-      console.error('[LeetGit] OAuth callback error:', err.message);
+      console.error('[GitLee] OAuth callback error:', err.message);
       res.redirect(`${config.cors.clientUrl}?error=${encodeURIComponent(err.message)}`);
     }
   },

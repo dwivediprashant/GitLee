@@ -7,4 +7,5 @@ const router = Router();
 router.use(requireAuth);
 router.get('/user', asyncHandler(githubController.getUser));
 router.get('/repositories', asyncHandler(githubController.listRepositories));
+router.get('/folders', asyncHandler(githubController.listRepositoryFolders));
 export default router;

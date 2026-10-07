@@ -91,7 +91,7 @@ export async function getOctokitForUser(userId) {
     }
 
     await integration.save();
-    console.log('[LeetGit] GitHub token refreshed for user', userId);
+    console.log('[GitLee] GitHub token refreshed for user', userId);
   }
 
   return new Octokit({ auth: decryptToken(integration.accessToken) });

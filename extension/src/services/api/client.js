@@ -1,6 +1,6 @@
 // Central HTTP client for all backend requests.
-
-const BASE_URL = 'http://localhost:3001/api';
+// Reads the backend URL from extension/.env → VITE_BACKEND_URL (see extension/.env.example).
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL || 'https://gitlee-backend.onrender.com'}/api`;
 
 class ApiError extends Error {
   constructor(message, status, data) {

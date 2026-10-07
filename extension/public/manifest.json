@@ -11,7 +11,8 @@
   },
   "host_permissions": [
     "https://leetcode.com/*",
-    "https://gitlee-backend.onrender.com/*"
+    "https://gitlee-backend.onrender.com/*",
+    "http://localhost:3001/*"
   ],
   "background": {
     "service_worker": "background.js",

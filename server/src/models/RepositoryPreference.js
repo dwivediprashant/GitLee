@@ -7,6 +7,9 @@ const repositoryPreferenceSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   defaultBranch: { type: String, default: 'main' },
   private: { type: Boolean, default: false },
+  // Base folder inside the repo that synced solutions are committed under.
+  // Empty string means the repository root level.
+  targetFolder: { type: String, default: '' },
   updatedAt: { type: Date, default: Date.now },
 });
 

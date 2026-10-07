@@ -3,7 +3,7 @@ dotenv.config();
 
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
-  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/leetgit',
+  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/gitlee',
 
   github: {
     clientId: process.env.GITHUB_CLIENT_ID,
@@ -35,7 +35,7 @@ export function validateConfig() {
 
   const missing = required.filter(([, v]) => !v).map(([k]) => k);
   if (missing.length > 0) {
-    console.warn(`[LeetGit] Warning: Missing environment variables: ${missing.join(', ')}`);
-    console.warn('[LeetGit] Some features may not work until these are configured.');
+    console.warn(`[GitLee] Warning: Missing environment variables: ${missing.join(', ')}`);
+    console.warn('[GitLee] Some features may not work until these are configured.');
   }
 }

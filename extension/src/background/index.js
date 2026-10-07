@@ -2,7 +2,10 @@
 
 import { storage } from "../storage/index.js";
 
-const BACKEND_URL = "https://gitlee-backend.onrender.com";
+// Single source of truth for the backend URL.
+// Set via extension/.env → VITE_BACKEND_URL (see extension/.env.example).
+// Falls back to production so existing builds keep working.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://gitlee-backend.onrender.com";
 // Handle messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender)
