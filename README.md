@@ -6,7 +6,10 @@ GitLee is a Manifest V3 browser extension and Express/MongoDB service that write
 
 ## How to setup & use
 
-https://github.com/user-attachments/assets/17cb13bf-3b01-4df5-843d-56d432aad1bd
+
+https://github.com/user-attachments/assets/ae4f8adf-687c-49a2-a5ae-f9e4a7affe54
+
+
 
 <!--
 1. Install dependencies: `npm run install:all`.
